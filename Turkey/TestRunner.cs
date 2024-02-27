@@ -69,7 +69,7 @@ namespace Turkey
             this.nuGetConfig = nuGetConfig;
         }
 
-        public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan defaultTimeout)
+        public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan defaultTimeout, string inputTestName)
         {
 
             await outputs.ForEachAsync(output => output.AtStartupAsync());
@@ -86,9 +86,15 @@ namespace Turkey
             TestParser parser = new TestParser();
 
             // sort tests before running to keep test order the same everywhere
-            var sortedFiles = root
+            IEnumerable<FileInfo> sortedFiles = root
                 .EnumerateFiles("test.json", options)
                 .OrderBy(f => f.DirectoryName);
+
+            if (inputTestName is not null)
+            {
+                sortedFiles = sortedFiles.Where(f => f.Directory.Name.Equals(inputTestName, 
+                    StringComparison.InvariantCultureIgnoreCase));
+            }
 
             foreach (var file in sortedFiles)
             {
