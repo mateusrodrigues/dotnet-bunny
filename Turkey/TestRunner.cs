@@ -69,7 +69,7 @@ namespace Turkey
             this.nuGetConfig = nuGetConfig;
         }
 
-        public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan defaultTimeout, string inputTestName)
+        public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan defaultTimeout, IEnumerable<string> tests)
         {
 
             await outputs.ForEachAsync(output => output.AtStartupAsync());
@@ -90,10 +90,9 @@ namespace Turkey
                 .EnumerateFiles("test.json", options)
                 .OrderBy(f => f.DirectoryName);
 
-            if (inputTestName is not null)
+            if (tests.Any())
             {
-                sortedFiles = sortedFiles.Where(f => f.Directory.Name.Equals(inputTestName, 
-                    StringComparison.InvariantCultureIgnoreCase));
+                sortedFiles = sortedFiles.Where(f => tests.Contains(f.Directory.Name));
             }
 
             foreach (var file in sortedFiles)

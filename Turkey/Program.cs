@@ -37,9 +37,12 @@ namespace Turkey
             Arity = ArgumentArity.ZeroOrMore
         };
 
-        public static readonly Option<string> testNameOption = new Option<string>(
-            new string[] { "--test-name", "-n" },
-            "Runs a single test within the test root directory with the set name.");
+        public static readonly Option<IEnumerable<string>> testsOption = new Option<IEnumerable<string>>(
+            new string[] { "--tests" },
+            "Run specific tests within the test root directory.")
+        {
+            Arity = ArgumentArity.OneOrMore
+        };
 
         public static async Task<int> Run(string testRoot,
                                           bool verbose,
@@ -47,7 +50,7 @@ namespace Turkey
                                           string additionalFeed,
                                           IEnumerable<string> trait,
                                           int timeout,
-                                          string testName)
+                                          IEnumerable<string> tests)
         {
             TimeSpan defaultTimeout;
             if (timeout == 0)
@@ -137,7 +140,7 @@ namespace Turkey
                 verboseOutput: verbose,
                 nuGetConfig: nuGetConfig);
 
-            var results = await runner.ScanAndRunAsync(testOutputs, logDir.FullName, defaultTimeout, testName);
+            var results = await runner.ScanAndRunAsync(testOutputs, logDir.FullName, defaultTimeout, tests);
 
             int exitCode = (results.Failed == 0) ? 0 : 1;
             return exitCode;
@@ -265,7 +268,7 @@ namespace Turkey
             rootCommand.AddOption(additionalFeedOption);
             rootCommand.AddOption(traitOption);
             rootCommand.AddOption(timeoutOption);
-            rootCommand.AddOption(testNameOption);
+            rootCommand.AddOption(testsOption);
 
             return await rootCommand.InvokeAsync(args);
         }
